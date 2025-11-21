@@ -1,18 +1,16 @@
-name: Web Cloud Build
+name: Build KeyCastOW
 
 on:
-  # 当你点击网页上的 "Commit changes" (提交) 时触发
   push:
     branches: [ "main", "master" ]
-  # 允许你手动在 Actions 页面点击按钮触发
   workflow_dispatch:
 
 jobs:
   build-on-cloud:
-    runs-on: windows-latest  # 申请一台 Windows 服务器
+    runs-on: windows-latest
 
     steps:
-    # 1. 把你的代码拉取到服务器
+    # 1. 拉取代码
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -20,20 +18,16 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
 
-    # 3. 恢复 NuGet 包 (如果是 C# 项目通常需要，C++ 项目可忽略或删除此步)
-    - name: Restore NuGet
-      run: nuget restore
+    # 3. 编译 (已移除报错的 nuget restore)
+    # 这里使用了 README 中指定的命令，并加上 *.vcxproj 确保选中项目文件
+    - name: Build
+      run: msbuild *.vcxproj /p:platform=win32 /p:Configuration=Release
 
-    # 4. 执行你的编译命令
-    - name: Run MSBuild
-      run: msbuild /p:platform=win32 /p:Configuration=Release
-
-    # 5. 【关键】把生成的 exe 打包上传，让你能下载
-    - name: Upload Build Artifacts
+    # 4. 上传生成的 exe 文件
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: My-App-Release  # 下载时的压缩包名字
+        name: KeyCastOW-Build
         path: |
           **/Release/*.exe
           **/Release/*.dll
-        # 上面的 path 使用了通配符，会自动搜索所有 Release 文件夹下的 exe 和 dll
